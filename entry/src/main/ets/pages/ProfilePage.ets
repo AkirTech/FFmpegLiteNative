@@ -1,0 +1,181 @@
+import { common, Want } from '@kit.AbilityKit';
+import { BusinessError } from '@kit.BasicServicesKit';
+
+@Component
+export struct ProfilePage {
+
+  // 获取UIAbilityContext
+  private getAbilityContext(): common.UIAbilityContext {
+    return getContext(this) as common.UIAbilityContext;
+  }
+
+  // 打开浏览器访问GitHub
+  private openGitHub() {
+    try {
+      const context = this.getAbilityContext();
+      
+      // 构造Want对象
+      const wantInfo: Want = {
+        action: 'ohos.want.action.viewData',
+        entities: ['entity.system.browsable'],
+        uri: 'https://github.com'
+      };
+
+      // 启动浏览器
+      context.startAbility(wantInfo)
+        .then(() => {
+          console.info('成功打开GitHub');
+        })
+        .catch((err: BusinessError) => {
+          console.error('打开GitHub失败: ' + JSON.stringify(err));
+        });
+        
+    } catch (error) {
+      console.error('打开浏览器失败: ' + JSON.stringify(error));
+    }
+  }
+
+  build() {
+    Column() {
+      // 标题区域
+      Column() {
+        Text('关于我们')
+          .fontSize(28)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#333333')
+          .margin({ bottom: 8 })
+        
+        Text('FFactory Lite')
+          .fontSize(20)
+          .fontColor('#666666')
+          .fontWeight(FontWeight.Medium)
+      }
+      .width('100%')
+      .padding({ top: 40, bottom: 30 })
+      .alignItems(HorizontalAlign.Center)
+      
+      // 内容卡片
+      Column() {
+        // 应用图标区域
+        Column() {
+          Text('🧩')
+            .fontSize(60)
+        }
+        .width(100)
+        .height(100)
+        .backgroundColor('#F0F8FF')
+        .borderRadius(20)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .margin({ bottom: 24 })
+        
+        // 应用名称和版本
+        Text('FFactory Lite')
+          .fontSize(22)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#333333')
+          .margin({ bottom: 4 })
+        
+        Text('版本 1.0.0')
+          .fontSize(14)
+          .fontColor('#999999')
+          .margin({ bottom: 24 })
+        
+        // 描述文本
+        Text('FFactory Lite 是一个轻量级的格式转换工具，致力于为用户提供简洁高效的媒体文件格式转换体验。我们专注于让手机端格式转化变得更加简单直观。')
+          .fontSize(16)
+          .fontColor('#666666')
+          .textAlign(TextAlign.Center)
+          .lineHeight(24)
+          .margin({ bottom: 32, left: 16, right: 16 })
+        
+        // 功能特色
+        Column() {
+          Row() {
+            Text('✓')
+              .fontSize(16)
+              .fontColor('#52C41A')
+              .margin({ right: 8 })
+            Text('简洁直观的界面设计')
+              .fontSize(14)
+              .fontColor('#666666')
+          }
+          .width('100%')
+          .margin({ bottom: 12 })
+          
+          Row() {
+            Text('✓')
+              .fontSize(16)
+              .fontColor('#52C41A')
+              .margin({ right: 8 })
+            Text('高效的文件管理功能')
+              .fontSize(14)
+              .fontColor('#666666')
+          }
+          .width('100%')
+          .margin({ bottom: 12 })
+          
+          Row() {
+            Text('✓')
+              .fontSize(16)
+              .fontColor('#52C41A')
+              .margin({ right: 8 })
+            Text('支持多种文件格式')
+              .fontSize(14)
+              .fontColor('#666666')
+          }
+          .width('100%')
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .margin({ bottom: 40 })
+        
+        // GitHub按钮
+        Button('访问 GitHub', { type: ButtonType.Normal })
+          .fontSize(16)
+          .fontColor('#FFFFFF')
+          .backgroundColor('#24292E')
+          .borderRadius(8)
+          .width('80%')
+          .height(44)
+          .onClick(() => {
+            this.openGitHub();
+          })
+      }
+      .width('90%')
+      .padding(24)
+      .backgroundColor('#FFFFFF')
+      .borderRadius(16)
+      .shadow({
+        radius: 8,
+        color: '#00000010',
+        offsetX: 0,
+        offsetY: 2
+      })
+      .margin({ bottom: 20 })
+      .alignItems(HorizontalAlign.Center)
+      
+      // 底部信息
+      Column() {
+        Text('© 2026 FFactory Lite')
+          .fontSize(12)
+          .fontColor('#999999')
+          .margin({ bottom: 4 })
+        
+        Text('All Rights Reserved')
+          .fontSize(12)
+          .fontColor('#999999')
+      }
+      .width('100%')
+      .padding({ bottom: 30 })
+      .alignItems(HorizontalAlign.Center)
+      
+      Blank()
+      .layoutWeight(1)
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor('#F8F8F8')
+    .padding({ left: 16, right: 16 })
+  }
+}
