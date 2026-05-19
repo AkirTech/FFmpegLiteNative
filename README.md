@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>FFmpegLiteNative</h1>
-<hr>
+
 
 ![Static Badge](https://img.shields.io/badge/Platform-grey?style=for-the-badge&logo=harmonyos&label=HarmonyOS&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/Utils-grey?style=for-the-badge&logo=ffmpeg&label=FFmpeg&labelColor=%23007808)
@@ -15,8 +15,13 @@
 ## Introduction
 - An FFmpeg user interface for HarmonyOS users.
 
+## Features
+- [x] Video, image, audio transcode support
+- [x] Video to audio support
+- [x] Metadata view  support
+
 ## Contributors
 - AkirTech
 - github-grcc
 
-2026.5.18
+2026.5.19
