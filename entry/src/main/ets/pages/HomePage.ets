@@ -66,7 +66,7 @@ class MyCallback implements TaskCallback {
 @Component
 export struct HomePage {
   // FFmpeg配置相关状态
-  @State enableHWaccel: boolean = true;
+  @State enableHWaccel: boolean = false;
   @State scaleWidth: number = 0;
   @State scaleHeight: number = 0;
   @State fps: number = 30;
@@ -85,7 +85,7 @@ export struct HomePage {
   @State isLoading: boolean = false
   @State thumbnailPixelMap: image.PixelMap | null = null
 
-
+  public static  codecs = ['aac', 'mp3', 'opus', 'vorbis'];
 
   // 获取UIAbilityContext
   private getAbilityContext(): common.UIAbilityContext {
@@ -762,8 +762,8 @@ export struct HomePage {
                       .selectedOptionFont({ size: 12 })
                       .optionFont({ size: 12 })
                       .onSelect((index: number) => {
-                        const codecs = ['aac', 'mp3', 'opus', 'vorbis'];
-                        this.audioCodec = codecs[index];
+
+                        this.audioCodec = HomePage.codecs[index];
                       })
                   }
                   .width('55%')
@@ -834,6 +834,7 @@ export struct HomePage {
                         const formats = ['mp4', 'avi', 'mov', 'mkv','mp3'];
                         this.outputFormat = formats[index];
                         if (this.outputFormat === 'mp3'){
+                          this.audioCodec = 'mp3';
                           promptAction.showToast({duration:3000,message:'选择mp3格式则放弃视频码率等设置'})
                         }
                         // 更新输出路径

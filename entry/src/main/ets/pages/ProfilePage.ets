@@ -58,12 +58,14 @@ export struct ProfilePage {
       Column() {
         // 应用图标区域
         Column() {
-          Text('🧩')
-            .fontSize(60)
+          Image($r('app.media.foreground'))
+            .width(80)
+            .height(80)
+            .objectFit(ImageFit.Contain)
         }
         .width(100)
         .height(100)
-        .backgroundColor('#F0F8FF')
+        .backgroundColor('#21a16a')
         .borderRadius(20)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
