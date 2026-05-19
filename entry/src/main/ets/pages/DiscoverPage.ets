@@ -391,12 +391,13 @@ export struct DiscoverPage {
     Column() {
       // 搜索框
 
-      Text("查看元数据").fontSize(34)
-      .fontWeight(FontWeight.Bold)
-      .padding({ left: 16, right: 16 })
-      .margin({ top: 32 ,bottom: 20})
-      .alignSelf(ItemAlign.Start)
-      
+      Text("查看元数据")
+        .fontSize(30)
+        .fontWeight(FontWeight.Bold)
+        .padding({ left: 16, right: 16 })
+        .margin({ top: 32 ,bottom: 20})
+        .alignSelf(ItemAlign.Start)
+
       // 文件选择区域
       Column() {
         // 圆角矩形 - 文件选择按钮

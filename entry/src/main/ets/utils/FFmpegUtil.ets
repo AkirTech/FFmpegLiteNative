@@ -3,6 +3,12 @@ import {FFmpegCommandBuilder} from '@prq/ffmpeg-tools'
 import {promptAction} from  '@kit.ArkUI'
 import { FFMpegUtils} from '@prq/ffmpeg-tools'
 
+import { FFProgressMessageParser, FFmpeg } from '@sj/ffmpeg';
+
+
+
+
+
 
 /*import { FFmpegCommandBuilder } from '@prq/ffmpeg-tools';
 
@@ -21,14 +27,28 @@ const cmd = new FFmpegCommandBuilder()
 // 执行命令
 manager.execute(cmd, 180000, callback);*/
 
-FFMpegUtils.showLog( true);
+
 
 
 export class FFmpegUtil {
 
   public static  async  exec(cmd:string[],timeout:number,callback:TaskCallback){
-    const manager = FFmpegManager.getInstance();
-    await manager.execute(cmd, timeout, callback);
+    // const manager = FFmpegManager.getInstance();
+
+    let outputJson:string = "";
+    await FFmpeg.execute(cmd, {
+      logCallback: (message: string) => console.log(`[log]${message}`),
+      progressCallback: (message: string) => console.log(`[progress]${JSON.stringify(FFProgressMessageParser.parse(message))}`),
+      outputCallback: (message: string) => {
+
+        outputJson +=message;},
+    }).then(() => {
+      console.info("FFmpeg execution succeeded.");
+      promptAction.showToast({duration:3000,message:`FFmpeg:Success.`});
+    }).catch((error: Error) => {
+      console.error(`FFmpeg execution failed with error: ${error.message}`);
+      promptAction.showToast({duration:3000,message:`FFmpeg:Fail.\n${error.message}`});
+    });
 
   }
 

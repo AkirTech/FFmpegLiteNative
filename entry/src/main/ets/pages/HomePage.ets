@@ -1,4 +1,4 @@
-import { picker } from '@kit.CoreFileKit';
+import { picker, fileUri } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import fs from '@ohos.file.fs';
@@ -7,7 +7,7 @@ import { promptAction } from '@kit.ArkUI';
 import {FFmpegUtil} from "../utils/FFmpegUtil"
 import { FFmpegCommandBuilder, FFmpegManager,TaskCallback } from '@prq/ffmpeg-tools';
 import { media } from '@kit.MediaKit';
-
+import { FFProgressMessageParser, FFmpeg } from '@sj/ffmpeg';
 
 
 
@@ -90,6 +90,22 @@ export struct HomePage {
   // 获取UIAbilityContext
   private getAbilityContext(): common.UIAbilityContext {
     return getContext(this) as common.UIAbilityContext;
+  }
+
+  // 将URI转换为实际的文件系统路径（FFmpeg需要实际路径，不能识别file://协议）
+  private decodeUriPath(uri: string): string {
+    try {
+      // 使用fileUri.FileUri将URI转换为实际的文件系统路径
+      const fileUriObject = new fileUri.FileUri(uri);
+      const actualPath = fileUriObject.path;
+      
+      console.info('URI转换: ' + uri + ' -> ' + actualPath);
+      return actualPath;
+    } catch (error) {
+      console.error('URI转换失败: ' + JSON.stringify(error));
+      // 转换失败时返回原始URI
+      return uri;
+    }
   }
 
   // 生成输出路径（基于输入路径修改后缀名）
@@ -448,7 +464,7 @@ export struct HomePage {
     Column() {
       // 标题
       Text('首页')
-        .fontSize(24)
+        .fontSize(30)
         .fontWeight(FontWeight.Bold)
         .fontColor('#333333')
         .margin({ top: 32, bottom: 20 })
@@ -595,12 +611,13 @@ export struct HomePage {
                     .fontColor('#333333')
                     .layoutWeight(1)
 
+
                   Toggle({ type: ToggleType.Switch, isOn: this.enableHWaccel })
                     .size({ width: 32, height: 16 })
                     .onChange((isOn: boolean) => {
                       this.enableHWaccel = isOn;
                       promptAction.showToast({
-                        message: `硬件加速 ${isOn ? '已启用' : '已禁用'}`,
+                        message: `硬件加速 ${isOn ? '已启用' : '已禁用'} \n注意：x86_64设备可能不支持硬件加速`,
                         duration: 2000
                       });
                     })
@@ -694,6 +711,7 @@ export struct HomePage {
               // 视频码率配置（仅视频文件）
               if (this.fileType === '视频文件') {
                 Row() {
+
                   Text('视频码率')
                     .fontSize(14)
                     .fontColor('#333333')
@@ -712,6 +730,7 @@ export struct HomePage {
                 .padding(16)
                 .borderRadius(12)
                 .margin({ bottom: 12 })
+                .id('videorate')
               }
 
               // 音频编码配置（视频和音频文件）
@@ -799,19 +818,24 @@ export struct HomePage {
                       { value: 'MP4' },
                       { value: 'AVI' },
                       { value: 'MOV' },
-                      { value: 'MKV' }
+                      { value: 'MKV' },
+                      { value: 'MP3' }
                     ])
                       .selected(this.outputFormat === 'mp4' ? 0 : 
                                 this.outputFormat === 'avi' ? 1 : 
-                                this.outputFormat === 'mov' ? 2 : 3)
+                                this.outputFormat === 'mov' ? 2 :
+                                this.outputFormat === 'mkv' ? 3 : 4)
                       .value(this.outputFormat.toUpperCase())
                       .font({ size: 12 })
                       .fontColor('#333333')
                       .selectedOptionFont({ size: 12 })
                       .optionFont({ size: 12 })
                       .onSelect((index: number) => {
-                        const formats = ['mp4', 'avi', 'mov', 'mkv'];
+                        const formats = ['mp4', 'avi', 'mov', 'mkv','mp3'];
                         this.outputFormat = formats[index];
+                        if (this.outputFormat === 'mp3'){
+                          promptAction.showToast({duration:3000,message:'选择mp3格式则放弃视频码率等设置'})
+                        }
                         // 更新输出路径
                         this.outputPath = this.generateOutputPath(this.selectedFileUri);
                       })
@@ -931,45 +955,77 @@ export struct HomePage {
   }
 
   execV() {
-    const cmd = new FFmpegCommandBuilder()
-      .input(this.selectedFileUri)
-      .output(this.outputPath)
-      .scale(this.scaleWidth, this.scaleHeight)
-      .fps(this.fps)
-      .format(this.outputFormat)
-      .audioCodec(this.audioCodec)
-      .audioBitrate(this.audioBitrate)
-      .videoBitrate(this.videoBitrate)
+    // 解码URI路径，FFmpeg无法识别百分号编码的URI
+    const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
+    const decodedOutputPath = this.decodeUriPath(this.outputPath);
+
+    const cmd = new FFmpegCommandBuilder();
+
+    if (this.outputFormat === 'mp3'){
+      cmd
+        .input(decodedInputUri)
+        .output(decodedOutputPath)
+        .audioCodec(this.audioCodec)
+        .audioBitrate(this.audioBitrate)
+
+    }
+    else{
+      cmd
+        .input(decodedInputUri)
+        .output(decodedOutputPath)
+        .scale(this.scaleWidth, this.scaleHeight)
+        .fps(this.fps)
+        .audioCodec(this.audioCodec)
+        .audioBitrate(this.audioBitrate)
+        .videoBitrate(this.videoBitrate)
+    }
 
     if (this.enableHWaccel){
       cmd.hwaccel();
     }
     let cmdStrA = cmd.build();
+    let _DcmdStr = cmd.buildString();
+    console.log(_DcmdStr);
     let myCallback = new MyCallback();
     FFmpegUtil.exec(cmdStrA,18000,myCallback);
   };
 
   execA(){
+    // 解码URI路径，FFmpeg无法识别百分号编码的URI
+    const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
+    const decodedOutputPath = this.decodeUriPath(this.outputPath);
+    
     const cmd = new FFmpegCommandBuilder()
-      .input(this.selectedFileUri)
-      .output(this.outputPath)
-      .format(this.outputFormat)
+      .input(decodedInputUri)
+      .output(decodedOutputPath)
       .audioCodec(this.audioCodec)
       .audioBitrate(this.audioBitrate)
 
     let cmdStrA = cmd.build();
+    let _DcmdStr = cmd.buildString();
+    console.log(_DcmdStr);
     let myCallback = new MyCallback();
     FFmpegUtil.exec(cmdStrA,18000,myCallback);
   }
 
   execI(){
+    // 解码URI路径，FFmpeg无法识别百分号编码的URI
+    const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
+    const decodedOutputPath = this.decodeUriPath(this.outputPath);
+    
     const cmd = new FFmpegCommandBuilder()
-      .input(this.selectedFileUri)
-      .output(this.outputPath)
-      .format(this.outputFormat)
+      .input(decodedInputUri)
+      .output(decodedOutputPath)
       .scale(this.scaleWidth, this.scaleHeight)
+    // let vf_param:string = "-vf scale="+this.scaleWidth+":"+this.scaleHeight;
+
+    // let manualCmd:string[] = ["ffmpeg -i",decodedInputUri,vf_param,this.outputPath];
+
+
 
     let cmdStrA = cmd.build();
+    let _DcmdStr = cmd.buildString();
+    console.log(_DcmdStr);
     let myCallback = new MyCallback();
     FFmpegUtil.exec(cmdStrA,18000,myCallback);
   }

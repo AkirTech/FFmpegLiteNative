@@ -18,7 +18,7 @@ export struct ProfilePage {
       const wantInfo: Want = {
         action: 'ohos.want.action.viewData',
         entities: ['entity.system.browsable'],
-        uri: 'https://github.com'
+        uri: 'https://github.com/AkirTech/FFmpegLiteNative'
       };
 
       // 启动浏览器

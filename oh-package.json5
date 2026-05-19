@@ -3,7 +3,8 @@
   "description": "Please describe the basic information.",
   "dependencies": {
     "@prq/ffmpeg-tools": "^2.2.6",
-    "@ohos/aki": "1.2.24"
+    "@ohos/aki": "1.2.24",
+    "@sj/ffmpeg": "^2.0.2"
   },
   "devDependencies": {
     "@ohos/hypium": "1.0.25",
