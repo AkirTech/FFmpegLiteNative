@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\qige0\\.ohos\\config\\default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A4651CDB572683B42A45C7D20FBE40287FB629DD1FE9E7B25995D25ECD03E6688B8AF1866D491",
+          "profile": "C:\\Users\\qige0\\.ohos\\config\\default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\qige0\\.ohos\\config\\default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.p12",
+          "storePassword": "0000001A1659F010616DC4F7B94267BC06973F2627CD7B9B3603DCE511377DD3BE378F361B27D97B9895"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
@@ -13,6 +27,11 @@
           "strictMode": {
             "caseSensitiveCheck": true,
             "useNormalizedOHMUrl": true
+          },
+          "externalNativeOptions": {
+            "abiFilters": [
+              "arm64-v8a"
+            ]
           }
         }
       }

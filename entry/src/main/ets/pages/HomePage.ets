@@ -959,21 +959,25 @@ export struct HomePage {
     // 解码URI路径，FFmpeg无法识别百分号编码的URI
     const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
     const decodedOutputPath = this.decodeUriPath(this.outputPath);
+    
+    // 用引号括起路径，处理带空格的文件名
+    const quotedInputUri = `"${decodedInputUri}"`;
+    const quotedOutputPath = `"${decodedOutputPath}"`;
 
     const cmd = new FFmpegCommandBuilder();
 
     if (this.outputFormat === 'mp3'){
       cmd
-        .input(decodedInputUri)
-        .output(decodedOutputPath)
+        .input(quotedInputUri)
+        .output(quotedOutputPath)
         .audioCodec(this.audioCodec)
         .audioBitrate(this.audioBitrate)
 
     }
     else{
       cmd
-        .input(decodedInputUri)
-        .output(decodedOutputPath)
+        .input(quotedInputUri)
+        .output(quotedOutputPath)
         .scale(this.scaleWidth, this.scaleHeight)
         .fps(this.fps)
         .audioCodec(this.audioCodec)
@@ -995,10 +999,14 @@ export struct HomePage {
     // 解码URI路径，FFmpeg无法识别百分号编码的URI
     const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
     const decodedOutputPath = this.decodeUriPath(this.outputPath);
+    // 用引号括起路径，处理带空格的文件名
+    const quotedInputUri = `"${decodedInputUri}"`;
+    const quotedOutputPath = `"${decodedOutputPath}"`;
+
     
     const cmd = new FFmpegCommandBuilder()
-      .input(decodedInputUri)
-      .output(decodedOutputPath)
+      .input(quotedInputUri)
+      .output(quotedOutputPath)
       .audioCodec(this.audioCodec)
       .audioBitrate(this.audioBitrate)
 
@@ -1013,16 +1021,20 @@ export struct HomePage {
     // 解码URI路径，FFmpeg无法识别百分号编码的URI
     const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
     const decodedOutputPath = this.decodeUriPath(this.outputPath);
+    // 用引号括起路径，处理带空格的文件名
+    const quotedInputUri = `"${decodedInputUri}"`;
+    const quotedOutputPath = `"${decodedOutputPath}"`;
+
     
     const cmd = new FFmpegCommandBuilder()
-      .input(decodedInputUri)
-      .output(decodedOutputPath)
+      .input(quotedInputUri)
+      .output(quotedOutputPath)
       .scale(this.scaleWidth, this.scaleHeight)
     // let vf_param:string = "-vf scale="+this.scaleWidth+":"+this.scaleHeight;
 
     // let manualCmd:string[] = ["ffmpeg -i",decodedInputUri,vf_param,this.outputPath];
 
-
+  cmd.arg("-frames:v","1");
 
     let cmdStrA = cmd.build();
     let _DcmdStr = cmd.buildString();
