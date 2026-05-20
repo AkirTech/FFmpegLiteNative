@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "C:\\Users\\qige0\\.ohos\\config\\default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.cer",
+          "certpath": "C:/Users/qige0/.ohos/config/default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001A4651CDB572683B42A45C7D20FBE40287FB629DD1FE9E7B25995D25ECD03E6688B8AF1866D491",
-          "profile": "C:\\Users\\qige0\\.ohos\\config\\default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.p7b",
+          "keyPassword": "0000001A86AAC29E6A11B161E8D606FA8F0A22A33AD1922D7C80ABAFE73CC48596EA7C211DF42BA36DA8",
+          "profile": "C:/Users/qige0/.ohos/config/default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\qige0\\.ohos\\config\\default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.p12",
-          "storePassword": "0000001A1659F010616DC4F7B94267BC06973F2627CD7B9B3603DCE511377DD3BE378F361B27D97B9895"
+          "storeFile": "C:/Users/qige0/.ohos/config/default_FFmpegLiteNative_l92HXZYuLxhvZQWo3073aObpi5ER9MsgEmp7nsn_iRw=.p12",
+          "storePassword": "0000001ACA234B40E749B75FB4178822D6E8A989DEF8B6FD8835587E1F4F7FB0D62CA9231790CC0BE5CD"
         }
       }
     ],
