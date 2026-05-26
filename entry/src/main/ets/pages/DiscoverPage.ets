@@ -9,6 +9,7 @@ import { promptAction } from '@kit.ArkUI';
 
 @Component
 export struct DiscoverPage {
+  @State thumbnailPixelMap: image.PixelMap | null = null;
   @State searchText: string = ''
   @State selectedFileUri: string = ''
   @State fileName: string = ''
@@ -17,6 +18,8 @@ export struct DiscoverPage {
   @State isMediaFile: boolean = false
   @State isLoading: boolean = false
   @State metadataText: string = ''
+  @State scaleWidth: number = 0;
+  @State scaleHeight: number = 0;
 
   // 获取UIAbilityContext
   private getAbilityContext(): common.UIAbilityContext {
@@ -102,8 +105,12 @@ export struct DiscoverPage {
         
         if (imageExtensions.includes(fileExtension)) {
           this.fileType = '图片文件';
+          // 生成图片缩略图
+          await this.generateThumbnail(fileUri);
         } else if (videoExtensions.includes(fileExtension)) {
           this.fileType = '视频文件';
+          // 生成视频缩略图
+          await this.generateVideoThumbnail(fileUri);
         } else if (audioExtensions.includes(fileExtension)) {
           this.fileType = '音频文件';
         } else {
@@ -307,7 +314,13 @@ export struct DiscoverPage {
       let metadataStr = '';
       metadataStr += `宽度: ${metadata.videoWidth || 'N/A'}\n`;
       metadataStr += `高度: ${metadata.videoHeight || 'N/A'}\n`;
-      metadataStr += `时长: ${metadata.duration ? metadata.duration + ' ms' : 'N/A'}\n`;
+      let duration:number = 0;
+      if (metadata.duration){
+        duration  = Number(metadata.duration);
+        duration = duration / 1000;
+        duration.toFixed(2);
+      }
+      metadataStr += `时长: ${metadata.duration ? duration + ' s' : 'N/A'}\n`;
       metadataStr += `编码格式: ${metadata.mimeType || 'N/A'}\n`;
       // metadataStr += `比特率: ${metadata.bitrate || 'N/A'}\n`;
       metadataStr += `轨道数: ${metadata.trackCount || 'N/A'}\n`;
@@ -332,6 +345,9 @@ export struct DiscoverPage {
     this.isMediaFile = false;
     this.isLoading = false;
     this.metadataText = '';
+    this.thumbnailPixelMap = null;
+    this.scaleWidth = 0;
+    this.scaleHeight = 0;
     
     // 显示清除成功提示
     promptAction.showToast({
@@ -387,6 +403,143 @@ export struct DiscoverPage {
     }
   }
 
+  private async generateThumbnail(fileUri: string) {
+    let imageSource: image.ImageSource | undefined = undefined;
+    try {
+      // 打开文件获取文件描述符
+      const file = fs.openSync(fileUri, fs.OpenMode.READ_ONLY);
+
+      // 创建 ImageSource
+      imageSource = image.createImageSource(file.fd);
+
+      // 获取图片信息
+      const imageInfo = await imageSource.getImageInfo(0);
+
+      // 保存原始图片尺寸到缩放配置
+      this.scaleWidth = imageInfo.size.width;
+      this.scaleHeight = imageInfo.size.height;
+
+      // 计算缩略图尺寸（保持宽高比，最大边长为200）
+      const maxSize = 200;
+      let width = imageInfo.size.width;
+      let height = imageInfo.size.height;
+
+      if (width > height) {
+        height = Math.floor(height * maxSize / width);
+        width = maxSize;
+      } else {
+        width = Math.floor(width * maxSize / height);
+        height = maxSize;
+      }
+
+      // 创建缩略图
+      const decodingOptions: image.DecodingOptions = {
+        desiredSize: { width: width, height: height }
+      };
+
+      this.thumbnailPixelMap = await imageSource.createPixelMap(decodingOptions);
+
+      // 关闭文件
+      fs.closeSync(file);
+    } catch (error) {
+      console.error('生成缩略图失败: ' + JSON.stringify(error));
+    } finally {
+      // 释放 ImageSource 资源
+      if (imageSource) {
+        imageSource.release();
+      }
+    }
+  }
+
+  // 生成视频缩略图并获取视频宽高
+  private async generateVideoThumbnail(fileUri: string) {
+    let file: fs.File | undefined = undefined;
+    let avImageGenerator: media.AVImageGenerator | undefined = undefined;
+    let avMetadataExtractor: media.AVMetadataExtractor | undefined = undefined;
+
+    try {
+      // 打开文件获取文件描述符
+      file = fs.openSync(fileUri, fs.OpenMode.READ_ONLY);
+
+      // 创建 AVMetadataExtractor 获取视频元数据（宽高）
+      avMetadataExtractor = await media.createAVMetadataExtractor();
+      avMetadataExtractor.fdSrc = { fd: file.fd };
+
+      // 获取视频元数据
+      const metadata = await avMetadataExtractor.fetchMetadata();
+
+      // 设置视频帧宽高到缩放配置
+      if (metadata.videoWidth && metadata.videoHeight) {
+        this.scaleWidth = parseInt(metadata.videoWidth);
+        this.scaleHeight = parseInt(metadata.videoHeight);
+        console.info('视频尺寸: ' + this.scaleWidth + ' x ' + this.scaleHeight);
+      }
+
+      // 释放 AVMetadataExtractor
+      await avMetadataExtractor.release();
+      avMetadataExtractor = undefined;
+
+      // 重新打开文件描述符（不能复用同一个fd）
+      fs.closeSync(file);
+      file = fs.openSync(fileUri, fs.OpenMode.READ_ONLY);
+
+      // 创建 AVImageGenerator 获取视频缩略图
+      avImageGenerator = await media.createAVImageGenerator();
+      avImageGenerator.fdSrc = { fd: file.fd };
+
+      // 计算缩略图尺寸（保持宽高比，最大边长为200）
+      const maxSize = 200;
+      let thumbWidth = this.scaleWidth || 300;
+      let thumbHeight = this.scaleHeight || 300;
+
+      if (thumbWidth > thumbHeight) {
+        thumbHeight = Math.floor(thumbHeight * maxSize / thumbWidth);
+        thumbWidth = maxSize;
+      } else {
+        thumbWidth = Math.floor(thumbWidth * maxSize / thumbHeight);
+        thumbHeight = maxSize;
+      }
+
+      // 获取视频首帧缩略图
+      const timeUs = 0; // 首帧
+      const queryOption = media.AVImageQueryOptions.AV_IMAGE_QUERY_NEXT_SYNC;
+      const param: media.PixelMapParams = {
+        width: thumbWidth,
+        height: thumbHeight
+      };
+
+      this.thumbnailPixelMap = await avImageGenerator.fetchFrameByTime(timeUs, queryOption, param);
+      console.info('视频缩略图生成成功');
+
+    } catch (error) {
+      console.error('生成视频缩略图失败: ' + JSON.stringify(error));
+    } finally {
+      // 释放资源
+      if (avImageGenerator) {
+        try {
+          await avImageGenerator.release();
+        } catch (e) {
+          console.error('释放 AVImageGenerator 失败: ' + JSON.stringify(e));
+        }
+      }
+      if (avMetadataExtractor) {
+        try {
+          await avMetadataExtractor.release();
+        } catch (e) {
+          console.error('释放 AVMetadataExtractor 失败: ' + JSON.stringify(e));
+        }
+      }
+      if (file) {
+        try {
+          fs.closeSync(file);
+        } catch (e) {
+          console.error('关闭文件失败: ' + JSON.stringify(e));
+        }
+      }
+    }
+  }
+
+
   build() {
     Column() {
       // 搜索框
@@ -407,6 +560,13 @@ export struct DiscoverPage {
               .width(32)
               .height(32)
               .color('#1890FF')
+          } else if (this.thumbnailPixelMap) {
+            // 显示图片/视频缩略图
+            Image(this.thumbnailPixelMap)
+              .width(120)
+              .height(120)
+              .objectFit(ImageFit.Cover)
+              .borderRadius(16)
           } else {
             Text(this.getThumbnailContent())
               .fontSize(48)
