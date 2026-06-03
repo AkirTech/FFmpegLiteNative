@@ -85,6 +85,12 @@ export struct HomePage {
   @State isLoading: boolean = false
   @State thumbnailPixelMap: image.PixelMap | null = null
 
+  // 转码进度相关状态
+  @State isTranscoding: boolean = false
+  @State transcodeProgress: number = 0       // 0–100
+  @State transcodeProgressText: string = ''  // 描述文字
+  private transcodeStartMs: number = 0       // 发起转码的时间戳
+
   public static  codecs = ['aac', 'mp3', 'opus', 'vorbis'];
 
   // 获取UIAbilityContext
@@ -153,6 +159,84 @@ export struct HomePage {
     } catch (error) {
       console.error('生成输出路径失败: ' + JSON.stringify(error));
       return inputPath + '_output';
+    }
+  }
+
+  // 获取或创建沙箱工作目录（位于app临时目录，原生代码可访问）
+  private ensureSandboxWorkDir(): string {
+    const context = this.getAbilityContext();
+    const workDir = `${context.tempDir}/ffmpeg_work`;
+    console.info('[Sandbox] tempDir: ' + context.tempDir);
+    try {
+      fs.mkdirSync(workDir);
+      console.info('[Sandbox] Work dir created: ' + workDir);
+    } catch (e) {
+      console.info('[Sandbox] Work dir ready (may already exist): ' + workDir);
+    }
+    return workDir;
+  }
+
+  // 将URI指向的文件拷贝到沙箱目录，返回沙箱路径
+  private async copyInputToSandbox(uri: string): Promise<string> {
+    const workDir = this.ensureSandboxWorkDir();
+    const fileName = decodeURIComponent(uri.split('/').pop() || 'input');
+    const sandboxPath = `${workDir}/${fileName}`;
+
+    // 通过read/write方式拷贝（避免copyFileSync在fd→path场景下的兼容性问题）
+    const srcFile = fs.openSync(uri, fs.OpenMode.READ_ONLY);
+    const stat = fs.statSync(srcFile.fd);
+    console.info('[Sandbox] Source fd size: ' + stat.size);
+
+    const buffer = new ArrayBuffer(stat.size);
+    const bytesRead = fs.readSync(srcFile.fd, buffer);
+    fs.closeSync(srcFile);
+    console.info('[Sandbox] Read ' + bytesRead + ' bytes from URI');
+
+    const dstFile = fs.openSync(sandboxPath, fs.OpenMode.CREATE | fs.OpenMode.WRITE_ONLY | fs.OpenMode.TRUNC);
+    const bytesWritten = fs.writeSync(dstFile.fd, buffer);
+    fs.closeSync(dstFile);
+    console.info('[Sandbox] Written ' + bytesWritten + ' bytes to: ' + sandboxPath);
+
+    // 验证文件是否写入成功
+    const verifyStat = fs.statSync(sandboxPath);
+    console.info('[Sandbox] Verified file exists, size: ' + verifyStat.size);
+
+    return sandboxPath;
+  }
+
+  // 生成沙箱中的输出路径
+  private getSandboxOutputPath(): string {
+    const workDir = this.ensureSandboxWorkDir();
+    const outputFileName = this.outputPath.split('/').pop() || 'output';
+    return `${workDir}/${outputFileName}`;
+  }
+
+  // FFmpeg执行成功后，将输出文件从沙箱拷贝到用户可见位置
+  private async saveOutputFile(sandboxOutput: string): Promise<string> {
+    const userOutputPath = this.decodeUriPath(this.outputPath);
+    try {
+      fs.copyFileSync(sandboxOutput, userOutputPath);
+      console.info('Output saved to: ' + userOutputPath);
+      return userOutputPath;
+    } catch (e) {
+      // 用户目录不可写时回退到app的files目录
+      const context = this.getAbilityContext();
+      const outputFileName = sandboxOutput.split('/').pop() || 'output';
+      const fallbackPath = `${context.filesDir}/${outputFileName}`;
+      fs.copyFileSync(sandboxOutput, fallbackPath);
+      console.info('Output saved to fallback: ' + fallbackPath);
+      return fallbackPath;
+    }
+  }
+
+  // 清理沙箱临时文件
+  private cleanupSandboxFiles(...paths: string[]) {
+    for (const path of paths) {
+      try {
+        fs.unlinkSync(path);
+      } catch (e) {
+        // 文件不存在则忽略
+      }
     }
   }
 
@@ -419,6 +503,47 @@ export struct HomePage {
     }
   }
 
+  // 获取媒体文件时长（秒），优先用沙箱路径，失败回退到URI
+  private async getMediaDuration(filePath: string): Promise<number> {
+    let file: fs.File | undefined;
+    let extractor: media.AVMetadataExtractor | undefined;
+    try {
+      file = fs.openSync(filePath, fs.OpenMode.READ_ONLY);
+      extractor = await media.createAVMetadataExtractor();
+      extractor.fdSrc = { fd: file.fd };
+      const metadata = await extractor.fetchMetadata();
+      if (metadata.duration) {
+        const durationMs = parseInt(metadata.duration);
+        if (durationMs > 0) {
+          console.info('媒体时长: ' + durationMs + 'ms');
+          return durationMs / 1000;
+        }
+      }
+    } catch (e) {
+      console.error('获取时长失败: ' + JSON.stringify(e));
+    } finally {
+      if (extractor) {
+        try { await extractor.release(); } catch (e) {}
+      }
+      if (file) {
+        try { fs.closeSync(file); } catch (e) {}
+      }
+    }
+    return 0;
+  }
+
+  // 格式化秒数为 HH:MM:SS
+  private formatDuration(sec: number): string {
+    if (sec <= 0) return '00:00';
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.floor(sec % 60);
+    if (h > 0) {
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
   // 清除选择
   private clearSelection() {
     this.selectedFileUri = '';
@@ -467,9 +592,38 @@ export struct HomePage {
         .fontSize(30)
         .fontWeight(FontWeight.Bold)
         .fontColor('#333333')
-        .margin({ top: 32, bottom: 20 })
+        .margin({ top: 32, bottom: 12 })
         .alignSelf(ItemAlign.Start)
         .padding({ left: 16, right: 16 })
+
+      // 转码进度条
+      if (this.isTranscoding) {
+        Column() {
+          Progress({
+            value: this.transcodeProgress,
+            total: 100,
+            type: ProgressType.Linear
+          })
+            .width('100%')
+            .height(6)
+            .style({ strokeWidth: 6, strokeRadius: 3 })
+            .color('#1890FF')
+            .backgroundColor('#E8E8E8')
+
+          Text(this.transcodeProgressText)
+            .fontSize(13)
+            .fontColor('#666666')
+            .margin({ top: 6 })
+
+          Text(this.isTranscoding ? this.transcodeProgress + '%' : '')
+            .fontSize(16)
+            .fontColor('#1890FF')
+            .fontWeight(FontWeight.Medium)
+            .margin({ top: 4 })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, bottom: 20 })
+      }
 
       // 文件选择区域
       Column() {
@@ -955,91 +1109,186 @@ export struct HomePage {
     .backgroundColor('#F8F8F8')
   }
 
-  execV() {
-    // 解码URI路径，FFmpeg无法识别百分号编码的URI
-    const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
-    const decodedOutputPath = this.decodeUriPath(this.outputPath);
-    
-    // 用引号括起路径，处理带空格的文件名
-    const quotedInputUri = `"${decodedInputUri}"`;
-    const quotedOutputPath = `"${decodedOutputPath}"`;
+  async execV() {
+    try {
+      promptAction.showToast({ message: '正在准备文件...', duration: 2000 });
 
-    const cmd = new FFmpegCommandBuilder();
+      // 将输入文件拷贝到沙箱（原生FFmpeg只能访问app沙箱路径）
+      const sandboxInput = await this.copyInputToSandbox(this.selectedFileUri);
+      const sandboxOutput = this.getSandboxOutputPath();
+      console.info('[Sandbox] Input: ' + sandboxInput);
+      console.info('[Sandbox] Output: ' + sandboxOutput);
 
-    if (this.outputFormat === 'mp3'){
-      cmd
-        .input(quotedInputUri)
-        .output(quotedOutputPath)
-        .audioCodec(this.audioCodec)
-        .audioBitrate(this.audioBitrate)
+      // 获取视频总时长用于进度计算
+      const totalDurationSec = await this.getMediaDuration(sandboxInput);
 
+      const cmd = new FFmpegCommandBuilder();
+
+      if (this.outputFormat === 'mp3') {
+        cmd
+          .input(sandboxInput)
+          .output(sandboxOutput)
+          .audioCodec(this.audioCodec)
+          .audioBitrate(this.audioBitrate);
+      } else {
+        cmd
+          .input(sandboxInput)
+          .output(sandboxOutput)
+          .scale(this.scaleWidth, this.scaleHeight)
+          .fps(this.fps)
+          .audioCodec(this.audioCodec)
+          .audioBitrate(this.audioBitrate)
+          .videoBitrate(this.videoBitrate);
+      }
+
+      if (this.enableHWaccel) {
+        cmd.hwaccel();
+      }
+      const cmdStrA = cmd.build();
+      console.log(cmd.buildString());
+
+      // 开始转码，更新进度条
+      this.isTranscoding = true;
+      this.transcodeProgress = 0;
+      this.transcodeProgressText = '准备中...';
+      this.transcodeStartMs = Date.now();
+
+      const success = await FFmpegUtil.exec(cmdStrA, 18000, new MyCallback(),
+        (currentSec: number) => {
+          const elapsedSec = Math.floor((Date.now() - this.transcodeStartMs) / 1000);
+          if (totalDurationSec > 0) {
+            const pct = Math.min(Math.round((currentSec / totalDurationSec) * 100), 99);
+            this.transcodeProgress = pct;
+            this.transcodeProgressText = '已用时 ' + this.formatDuration(elapsedSec) + '  |  进度 ' + this.formatDuration(currentSec) + ' / ' + this.formatDuration(totalDurationSec);
+          } else {
+            this.transcodeProgressText = '已用时 ' + this.formatDuration(elapsedSec);
+          }
+        });
+
+      this.transcodeProgress = success ? 100 : 0;
+      this.isTranscoding = false;
+
+      if (success) {
+        const savedPath = await this.saveOutputFile(sandboxOutput);
+        promptAction.showToast({
+          message: '已保存: ' + (savedPath.split('/').pop() || 'output'),
+          duration: 3000
+        });
+      }
+
+      this.cleanupSandboxFiles(sandboxInput, sandboxOutput);
+    } catch (error) {
+      this.isTranscoding = false;
+      const err = error as Error;
+      console.error('execV failed: ' + JSON.stringify(err));
+      promptAction.showToast({ message: '处理失败: ' + err.message, duration: 3000 });
     }
-    else{
-      cmd
-        .input(quotedInputUri)
-        .output(quotedOutputPath)
-        .scale(this.scaleWidth, this.scaleHeight)
-        .fps(this.fps)
-        .audioCodec(this.audioCodec)
-        .audioBitrate(this.audioBitrate)
-        .videoBitrate(this.videoBitrate)
-    }
-
-    if (this.enableHWaccel){
-      cmd.hwaccel();
-    }
-    let cmdStrA = cmd.build();
-    let _DcmdStr = cmd.buildString();
-    console.log(_DcmdStr);
-    let myCallback = new MyCallback();
-    FFmpegUtil.exec(cmdStrA,18000,myCallback);
   };
 
-  execA(){
-    // 解码URI路径，FFmpeg无法识别百分号编码的URI
-    const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
-    const decodedOutputPath = this.decodeUriPath(this.outputPath);
-    // 用引号括起路径，处理带空格的文件名
-    const quotedInputUri = `"${decodedInputUri}"`;
-    const quotedOutputPath = `"${decodedOutputPath}"`;
+  async execA() {
+    try {
+      promptAction.showToast({ message: '正在准备文件...', duration: 2000 });
 
-    
-    const cmd = new FFmpegCommandBuilder()
-      .input(quotedInputUri)
-      .output(quotedOutputPath)
-      .audioCodec(this.audioCodec)
-      .audioBitrate(this.audioBitrate)
+      const sandboxInput = await this.copyInputToSandbox(this.selectedFileUri);
+      const sandboxOutput = this.getSandboxOutputPath();
+      console.info('[Sandbox] Input: ' + sandboxInput);
+      console.info('[Sandbox] Output: ' + sandboxOutput);
 
-    let cmdStrA = cmd.build();
-    let _DcmdStr = cmd.buildString();
-    console.log(_DcmdStr);
-    let myCallback = new MyCallback();
-    FFmpegUtil.exec(cmdStrA,18000,myCallback);
+      const totalDurationSec = await this.getMediaDuration(sandboxInput);
+
+      const cmd = new FFmpegCommandBuilder()
+        .input(sandboxInput)
+        .output(sandboxOutput)
+        .audioCodec(this.audioCodec)
+        .audioBitrate(this.audioBitrate);
+
+      const cmdStrA = cmd.build();
+      console.log(cmd.buildString());
+
+      this.isTranscoding = true;
+      this.transcodeProgress = 0;
+      this.transcodeProgressText = '准备中...';
+      this.transcodeStartMs = Date.now();
+
+      const success = await FFmpegUtil.exec(cmdStrA, 18000, new MyCallback(),
+        (currentSec: number) => {
+          const elapsedSec = Math.floor((Date.now() - this.transcodeStartMs) / 1000);
+          if (totalDurationSec > 0) {
+            const pct = Math.min(Math.round((currentSec / totalDurationSec) * 100), 99);
+            this.transcodeProgress = pct;
+            this.transcodeProgressText = '已用时 ' + this.formatDuration(elapsedSec) + '  |  进度 ' + this.formatDuration(currentSec) + ' / ' + this.formatDuration(totalDurationSec);
+          } else {
+            this.transcodeProgressText = '已用时 ' + this.formatDuration(elapsedSec);
+          }
+        });
+
+      this.transcodeProgress = success ? 100 : 0;
+      this.isTranscoding = false;
+
+      if (success) {
+        const savedPath = await this.saveOutputFile(sandboxOutput);
+        promptAction.showToast({
+          message: '已保存: ' + (savedPath.split('/').pop() || 'output'),
+          duration: 3000
+        });
+      }
+
+      this.cleanupSandboxFiles(sandboxInput, sandboxOutput);
+    } catch (error) {
+      this.isTranscoding = false;
+      const err = error as Error;
+      console.error('execA failed: ' + JSON.stringify(err));
+      promptAction.showToast({ message: '处理失败: ' + err.message, duration: 3000 });
+    }
   }
 
-  execI(){
-    // 解码URI路径，FFmpeg无法识别百分号编码的URI
-    const decodedInputUri = this.decodeUriPath(this.selectedFileUri);
-    const decodedOutputPath = this.decodeUriPath(this.outputPath);
-    // 用引号括起路径，处理带空格的文件名
-    const quotedInputUri = `"${decodedInputUri}"`;
-    const quotedOutputPath = `"${decodedOutputPath}"`;
+  async execI() {
+    try {
+      promptAction.showToast({ message: '正在准备文件...', duration: 2000 });
 
-    
-    const cmd = new FFmpegCommandBuilder()
-      .input(quotedInputUri)
-      .output(quotedOutputPath)
-      .scale(this.scaleWidth, this.scaleHeight)
-    // let vf_param:string = "-vf scale="+this.scaleWidth+":"+this.scaleHeight;
+      const sandboxInput = await this.copyInputToSandbox(this.selectedFileUri);
+      const sandboxOutput = this.getSandboxOutputPath();
+      console.info('[Sandbox] Input: ' + sandboxInput);
+      console.info('[Sandbox] Output: ' + sandboxOutput);
 
-    // let manualCmd:string[] = ["ffmpeg -i",decodedInputUri,vf_param,this.outputPath];
+      const cmd = new FFmpegCommandBuilder()
+        .input(sandboxInput)
+        .output(sandboxOutput)
+        .scale(this.scaleWidth, this.scaleHeight);
 
-  cmd.arg("-frames:v","1");
+      cmd.arg("-frames:v", "1");
 
-    let cmdStrA = cmd.build();
-    let _DcmdStr = cmd.buildString();
-    console.log(_DcmdStr);
-    let myCallback = new MyCallback();
-    FFmpegUtil.exec(cmdStrA,18000,myCallback);
+      const cmdStrA = cmd.build();
+      console.log(cmd.buildString());
+
+      this.isTranscoding = true;
+      this.transcodeProgress = 0;
+      this.transcodeProgressText = '处理中...';
+      this.transcodeStartMs = Date.now();
+
+      const success = await FFmpegUtil.exec(cmdStrA, 18000, new MyCallback(),
+        (currentSec: number) => {
+          const elapsedSec = Math.floor((Date.now() - this.transcodeStartMs) / 1000);
+          this.transcodeProgressText = '已用时 ' + this.formatDuration(elapsedSec);
+        });
+
+      this.transcodeProgress = success ? 100 : 0;
+      this.isTranscoding = false;
+
+      if (success) {
+        const savedPath = await this.saveOutputFile(sandboxOutput);
+        promptAction.showToast({
+          message: '已保存: ' + (savedPath.split('/').pop() || 'output'),
+          duration: 3000
+        });
+      }
+
+      this.cleanupSandboxFiles(sandboxInput, sandboxOutput);
+    } catch (error) {
+      this.isTranscoding = false;
+      const err = error as Error;
+      console.error('execI failed: ' + JSON.stringify(err));
+      promptAction.showToast({ message: '处理失败: ' + err.message, duration: 3000 });
+    }
   }
 }

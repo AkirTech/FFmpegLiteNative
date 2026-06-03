@@ -320,6 +320,7 @@ export struct DiscoverPage {
         duration = duration / 1000;
         duration.toFixed(2);
       }
+
       metadataStr += `时长: ${metadata.duration ? duration + ' s' : 'N/A'}\n`;
       metadataStr += `编码格式: ${metadata.mimeType || 'N/A'}\n`;
       // metadataStr += `比特率: ${metadata.bitrate || 'N/A'}\n`;
