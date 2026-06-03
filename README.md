@@ -14,6 +14,7 @@
 
 ## Introduction
 - An FFmpeg user interface for HarmonyOS users.
+- User-friendly and graceful interface.
 
 ## Features
 - [x] Video, image, audio transcode support
