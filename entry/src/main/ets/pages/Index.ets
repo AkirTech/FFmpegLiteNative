@@ -31,8 +31,8 @@ struct Index {
       }
       .width('100%')
       .height(56)
-      .backgroundColor('#FFFFFF')
-      .border({ width: { top: 1 }, color: '#E5E5E5' })
+      .backgroundColor($r('app.color.bg_primary'))
+      .border({ width: { top: 1 }, color: $r('app.color.border_nav') })
     }
     .width('100%')
     .height('100%')
@@ -51,7 +51,7 @@ struct Index {
     .height('100%')
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
-    .backgroundColor(this.currentIndex === index ? '#F0F8FF' : '#FFFFFF')
+    .backgroundColor(this.currentIndex === index ? $r('app.color.bg_selected') : $r('app.color.bg_primary'))
     .onClick(() => {
       this.currentIndex = index;
     })

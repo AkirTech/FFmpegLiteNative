@@ -591,7 +591,7 @@ export struct HomePage {
       Text('首页')
         .fontSize(30)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#333333')
+        .fontColor($r('app.color.text_primary'))
         .margin({ top: 32, bottom: 12 })
         .alignSelf(ItemAlign.Start)
         .padding({ left: 16, right: 16 })
@@ -607,17 +607,17 @@ export struct HomePage {
             .width('100%')
             .height(6)
             .style({ strokeWidth: 6, strokeRadius: 3 })
-            .color('#1890FF')
-            .backgroundColor('#E8E8E8')
+            .color($r('app.color.primary_blue'))
+            .backgroundColor($r('app.color.progress_bg'))
 
           Text(this.transcodeProgressText)
             .fontSize(13)
-            .fontColor('#666666')
+            .fontColor($r('app.color.text_secondary'))
             .margin({ top: 6 })
 
           Text(this.isTranscoding ? this.transcodeProgress + '%' : '')
             .fontSize(16)
-            .fontColor('#1890FF')
+            .fontColor($r('app.color.primary_blue'))
             .fontWeight(FontWeight.Medium)
             .margin({ top: 4 })
         }
@@ -633,7 +633,7 @@ export struct HomePage {
             LoadingProgress()
               .width(32)
               .height(32)
-              .color('#1890FF')
+              .color($r('app.color.primary_blue'))
           } else if (this.thumbnailPixelMap) {
             // 显示图片缩略图
             Image(this.thumbnailPixelMap)
@@ -644,17 +644,17 @@ export struct HomePage {
           } else {
             Text(this.getThumbnailContent())
               .fontSize(48)
-              .fontColor(this.selectedFileUri ? '#666666' : '#999999')
+              .fontColor(this.selectedFileUri ? $r('app.color.text_secondary') : $r('app.color.text_tertiary'))
               .fontWeight(FontWeight.Medium)
           }
         }
         .width(120)
         .height(120)
-        .backgroundColor(this.selectedFileUri ? '#F0F8FF' : (this.isLoading ? '#F8F8F8' : '#F5F5F5'))
+        .backgroundColor(this.selectedFileUri ? $r('app.color.bg_selected') : (this.isLoading ? $r('app.color.bg_secondary') : $r('app.color.bg_tertiary')))
         .borderRadius(16)
         .border({
           width: this.selectedFileUri ? 2 : 1,
-          color: this.selectedFileUri ? '#1890FF' : (this.isLoading ? '#CCCCCC' : '#E0E0E0'),
+          color: this.selectedFileUri ? $r('app.color.primary_blue') : (this.isLoading ? $r('app.color.border_secondary') : $r('app.color.border_primary')),
           style: BorderStyle.Solid
         })
         .onClick(() => {
@@ -668,7 +668,7 @@ export struct HomePage {
           Column() {
             Text(this.fileName)
               .fontSize(16)
-              .fontColor('#333333')
+              .fontColor($r('app.color.text_primary'))
               .fontWeight(FontWeight.Medium)
               .margin({ top: 12 })
               .maxLines(2)
@@ -677,7 +677,7 @@ export struct HomePage {
             
             Text(`${this.fileType} | ${this.fileSize}`)
               .fontSize(14)
-              .fontColor('#666666')
+              .fontColor($r('app.color.text_secondary'))
               .margin({ top: 4 })
           }
           .width('100%')
@@ -686,18 +686,18 @@ export struct HomePage {
         } else if (this.isLoading) {
           Text('正在加载文件信息...')
             .fontSize(14)
-            .fontColor('#999999')
+            .fontColor($r('app.color.text_tertiary'))
             .margin({ top: 16 })
         } else {
           Text('点击选择媒体文件')
             .fontSize(14)
-            .fontColor('#999999')
+            .fontColor($r('app.color.text_tertiary'))
             .margin({ top: 16 })
         }
       }
       .width('100%')
       .padding(20)
-      .backgroundColor('#FFFFFF')
+      .backgroundColor($r('app.color.bg_primary'))
       .borderRadius(12)
       .margin({ left: 16, right: 16, bottom: 20 })
       .alignItems(HorizontalAlign.Center)
@@ -707,8 +707,8 @@ export struct HomePage {
         Row(){
           Button('清除选择', { type: ButtonType.Normal })
             .fontSize(14)
-            .fontColor('#FFFFFF')
-            .backgroundColor('#FF4D4F')
+            .fontColor($r('app.color.bg_primary'))
+            .backgroundColor($r('app.color.danger'))
             .borderRadius(6)
             .width(120)
             .height(36)
@@ -718,8 +718,8 @@ export struct HomePage {
             })
           Button('执行转码')
             .fontSize(14)
-            .fontColor('#333333')
-            .backgroundColor('#F5F5F5')
+            .fontColor($r('app.color.text_primary'))
+            .backgroundColor($r('app.color.bg_tertiary'))
             .borderRadius(6)
             .width(120)
             .height(36)
@@ -750,7 +750,7 @@ export struct HomePage {
           Text('配置选项')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
             .margin({ bottom: 16 })
             .alignSelf(ItemAlign.Start)
 
@@ -762,7 +762,7 @@ export struct HomePage {
                 Row() {
                   Text('硬件加速')
                     .fontSize(14)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .layoutWeight(1)
 
 
@@ -775,10 +775,10 @@ export struct HomePage {
                         duration: 2000
                       });
                     })
-                    .selectedColor('#1890FF')
+                    .selectedColor($r('app.color.primary_blue'))
                 }
                 .width('100%')
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.bg_primary'))
                 .padding(16)
                 .borderRadius(12)
                 .margin({ bottom: 12 })
@@ -789,7 +789,7 @@ export struct HomePage {
                 Row() {
                   Text('缩放尺寸')
                     .fontSize(14)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .layoutWeight(1)
 
                   Row() {
@@ -807,7 +807,7 @@ export struct HomePage {
 
                     Text(' × ')
                       .fontSize(14)
-                      .fontColor('#666666')
+                      .fontColor($r('app.color.text_secondary'))
                       .margin({ left: 4, right: 4 })
 
                     TextInput({ text: this.scaleHeight.toString(), placeholder: '高' })
@@ -826,7 +826,7 @@ export struct HomePage {
                   .justifyContent(FlexAlign.End)
                 }
                 .width('100%')
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.bg_primary'))
                 .padding(16)
                 .borderRadius(12)
                 .margin({ bottom: 12 })
@@ -837,7 +837,7 @@ export struct HomePage {
                 Row() {
                   Text(`帧率 (FPS): ${this.fps}`)
                     .fontSize(14)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .layoutWeight(1)
 
                   Slider({
@@ -851,12 +851,12 @@ export struct HomePage {
                       this.fps = Math.round(value);
                     })
                     .width('55%')
-                    .blockColor('#1890FF')
-                    .trackColor('#E0E0E0')
-                    .selectedColor('#1890FF')
+                    .blockColor($r('app.color.primary_blue'))
+                    .trackColor($r('app.color.border_primary'))
+                    .selectedColor($r('app.color.primary_blue'))
                 }
                 .width('100%')
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.bg_primary'))
                 .padding(16)
                 .borderRadius(12)
                 .margin({ bottom: 12 })
@@ -868,7 +868,7 @@ export struct HomePage {
 
                   Text('视频码率')
                     .fontSize(14)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .layoutWeight(1)
 
                   TextInput({ text: this.videoBitrate, placeholder: '如: 2M, 2000k' })
@@ -880,7 +880,7 @@ export struct HomePage {
                     })
                 }
                 .width('100%')
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.bg_primary'))
                 .padding(16)
                 .borderRadius(12)
                 .margin({ bottom: 12 })
@@ -892,13 +892,13 @@ export struct HomePage {
                 Row() {
                   Text('音频编码')
                     .fontSize(14)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .layoutWeight(1)
 
                   Row() {
                     Text(this.audioCodec)
                       .fontSize(12)
-                      .fontColor('#333333')
+                      .fontColor($r('app.color.text_primary'))
                       .padding({ left: 12, right: 8 })
                     
                     Select([
@@ -912,7 +912,7 @@ export struct HomePage {
                                 this.audioCodec === 'opus' ? 2 : 3)
                       .value(this.audioCodec)
                       .font({ size: 12 })
-                      .fontColor('#333333')
+                      .fontColor($r('app.color.text_primary'))
                       .selectedOptionFont({ size: 12 })
                       .optionFont({ size: 12 })
                       .onSelect((index: number) => {
@@ -924,7 +924,7 @@ export struct HomePage {
                   .justifyContent(FlexAlign.End)
                 }
                 .width('100%')
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.bg_primary'))
                 .padding(16)
                 .borderRadius(12)
                 .margin({ bottom: 12 })
@@ -935,7 +935,7 @@ export struct HomePage {
                 Row() {
                   Text('音频码率')
                     .fontSize(14)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .layoutWeight(1)
 
                   TextInput({ text: this.audioBitrate, placeholder: '如: 128k, 192k' })
@@ -947,7 +947,7 @@ export struct HomePage {
                     })
                 }
                 .width('100%')
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.bg_primary'))
                 .padding(16)
                 .borderRadius(12)
                 .margin({ bottom: 12 })
@@ -957,13 +957,13 @@ export struct HomePage {
               Row() {
                 Text('输出格式')
                   .fontSize(14)
-                  .fontColor('#333333')
+                  .fontColor($r('app.color.text_primary'))
                   .layoutWeight(1)
 
                 Row() {
                   Text(this.outputFormat.toUpperCase())
                     .fontSize(12)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .padding({ left: 12, right: 8 })
                   
                   // 视频文件格式选择
@@ -981,7 +981,7 @@ export struct HomePage {
                                 this.outputFormat === 'mkv' ? 3 : 4)
                       .value(this.outputFormat.toUpperCase())
                       .font({ size: 12 })
-                      .fontColor('#333333')
+                      .fontColor($r('app.color.text_primary'))
                       .selectedOptionFont({ size: 12 })
                       .optionFont({ size: 12 })
                       .onSelect((index: number) => {
@@ -1010,7 +1010,7 @@ export struct HomePage {
                                 this.outputFormat === 'bmp' ? 3 : 4)
                       .value(this.outputFormat.toUpperCase())
                       .font({ size: 12 })
-                      .fontColor('#333333')
+                      .fontColor($r('app.color.text_primary'))
                       .selectedOptionFont({ size: 12 })
                       .optionFont({ size: 12 })
                       .onSelect((index: number) => {
@@ -1035,7 +1035,7 @@ export struct HomePage {
                                 this.outputFormat === 'flac' ? 3 : 4)
                       .value(this.outputFormat.toUpperCase())
                       .font({ size: 12 })
-                      .fontColor('#333333')
+                      .fontColor($r('app.color.text_primary'))
                       .selectedOptionFont({ size: 12 })
                       .optionFont({ size: 12 })
                       .onSelect((index: number) => {
@@ -1050,7 +1050,7 @@ export struct HomePage {
                 .justifyContent(FlexAlign.End)
               }
               .width('100%')
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.bg_primary'))
               .padding(16)
               .borderRadius(12)
               .margin({ bottom: 12 })
@@ -1060,7 +1060,7 @@ export struct HomePage {
                 Row() {
                   Text('输出路径')
                     .fontSize(14)
-                    .fontColor('#333333')
+                    .fontColor($r('app.color.text_primary'))
                     .layoutWeight(1)
                 }
                 .width('100%')
@@ -1068,16 +1068,16 @@ export struct HomePage {
 
                 Text(this.outputPath || '请先选择输入文件')
                   .fontSize(12)
-                  .fontColor('#666666')
+                  .fontColor($r('app.color.text_secondary'))
                   .width('100%')
                   .maxLines(3)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
                   .padding(12)
-                  .backgroundColor('#F8F8F8')
+                  .backgroundColor($r('app.color.bg_secondary'))
                   .borderRadius(8)
               }
               .width('100%')
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.bg_primary'))
               .padding(16)
               .borderRadius(12)
               .margin({ bottom: 12 })
@@ -1088,15 +1088,15 @@ export struct HomePage {
           .width('100%')
           .layoutWeight(1)
           .scrollBar(BarState.Auto)
-          .scrollBarColor('#CCCCCC')
+          .scrollBarColor($r('app.color.border_secondary'))
           .scrollBarWidth(4)
           .edgeEffect(EdgeEffect.Spring)
-          .backgroundColor('#F8F8F8')
+          .backgroundColor($r('app.color.bg_secondary'))
         }
         .width('100%')
         .height(350)
         .padding(16)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor($r('app.color.bg_primary'))
         .borderRadius(12)
         .margin({ left: 16, right: 16, bottom: 20 })
       }
@@ -1106,7 +1106,7 @@ export struct HomePage {
     .height('100%')
     .justifyContent(FlexAlign.Start)
     .alignItems(HorizontalAlign.Center)
-    .backgroundColor('#F8F8F8')
+    .backgroundColor($r('app.color.bg_secondary'))
   }
 
   async execV() {

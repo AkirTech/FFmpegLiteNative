@@ -1,8 +1,72 @@
 {
   "color": [
     {
-      "name": "start_window_background",
+      "name": "primary_blue",
+      "value": "#1890FF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#333333"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#666666"
+    },
+    {
+      "name": "text_tertiary",
+      "value": "#999999"
+    },
+    {
+      "name": "bg_primary",
       "value": "#FFFFFF"
+    },
+    {
+      "name": "bg_secondary",
+      "value": "#F8F8F8"
+    },
+    {
+      "name": "bg_tertiary",
+      "value": "#F5F5F5"
+    },
+    {
+      "name": "bg_selected",
+      "value": "#F0F8FF"
+    },
+    {
+      "name": "border_primary",
+      "value": "#E0E0E0"
+    },
+    {
+      "name": "border_secondary",
+      "value": "#CCCCCC"
+    },
+    {
+      "name": "progress_bg",
+      "value": "#E8E8E8"
+    },
+    {
+      "name": "danger",
+      "value": "#FF4D4F"
+    },
+    {
+      "name": "success",
+      "value": "#52C41A"
+    },
+    {
+      "name": "app_icon_bg",
+      "value": "#21a16a"
+    },
+    {
+      "name": "github_btn",
+      "value": "#24292E"
+    },
+    {
+      "name": "shadow_light",
+      "value": "#00000010"
+    },
+    {
+      "name": "border_nav",
+      "value": "#E5E5E5"
     }
   ]
 }

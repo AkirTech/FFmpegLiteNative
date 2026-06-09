@@ -3,6 +3,74 @@
     {
       "name": "start_window_background",
       "value": "#000000"
+    },
+    {
+      "name": "primary_blue",
+      "value": "#40A9FF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#E8E8E8"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#B0B0B0"
+    },
+    {
+      "name": "text_tertiary",
+      "value": "#808080"
+    },
+    {
+      "name": "bg_primary",
+      "value": "#1A1A1A"
+    },
+    {
+      "name": "bg_secondary",
+      "value": "#121212"
+    },
+    {
+      "name": "bg_tertiary",
+      "value": "#2A2A2A"
+    },
+    {
+      "name": "bg_selected",
+      "value": "#1E3A5F"
+    },
+    {
+      "name": "border_primary",
+      "value": "#404040"
+    },
+    {
+      "name": "border_secondary",
+      "value": "#505050"
+    },
+    {
+      "name": "border_nav",
+      "value": "#303030"
+    },
+    {
+      "name": "progress_bg",
+      "value": "#333333"
+    },
+    {
+      "name": "danger",
+      "value": "#FF7875"
+    },
+    {
+      "name": "success",
+      "value": "#73D13D"
+    },
+    {
+      "name": "app_icon_bg",
+      "value": "#2BAE68"
+    },
+    {
+      "name": "github_btn",
+      "value": "#3D4450"
+    },
+    {
+      "name": "shadow_light",
+      "value": "#FFFFFF10"
     }
   ]
 }

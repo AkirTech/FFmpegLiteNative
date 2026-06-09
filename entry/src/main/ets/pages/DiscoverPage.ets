@@ -560,7 +560,7 @@ export struct DiscoverPage {
             LoadingProgress()
               .width(32)
               .height(32)
-              .color('#1890FF')
+              .color($r('app.color.primary_blue'))
           } else if (this.thumbnailPixelMap) {
             // 显示图片/视频缩略图
             Image(this.thumbnailPixelMap)
@@ -571,17 +571,17 @@ export struct DiscoverPage {
           } else {
             Text(this.getThumbnailContent())
               .fontSize(48)
-              .fontColor(this.selectedFileUri ? '#666666' : '#999999')
+              .fontColor(this.selectedFileUri ? $r('app.color.text_secondary') : $r('app.color.text_tertiary'))
               .fontWeight(FontWeight.Medium)
           }
         }
         .width(120)
         .height(120)
-        .backgroundColor(this.selectedFileUri ? '#F0F8FF' : (this.isLoading ? '#F8F8F8' : '#F5F5F5'))
+        .backgroundColor(this.selectedFileUri ? $r('app.color.bg_selected') : (this.isLoading ? $r('app.color.bg_secondary') : $r('app.color.bg_tertiary')))
         .borderRadius(16)
         .border({
           width: this.selectedFileUri ? 2 : 1,
-          color: this.selectedFileUri ? '#1890FF' : (this.isLoading ? '#CCCCCC' : '#E0E0E0'),
+          color: this.selectedFileUri ? $r('app.color.primary_blue') : (this.isLoading ? $r('app.color.border_secondary') : $r('app.color.border_primary')),
           style: BorderStyle.Solid
         })
         .onClick(() => {
@@ -595,7 +595,7 @@ export struct DiscoverPage {
           Column() {
             Text(this.fileName)
               .fontSize(16)
-              .fontColor('#333333')
+              .fontColor($r('app.color.text_primary'))
               .fontWeight(FontWeight.Medium)
               .margin({ top: 12 })
               .maxLines(2)
@@ -604,7 +604,7 @@ export struct DiscoverPage {
             
             Text(`${this.fileType} | ${this.fileSize}`)
               .fontSize(14)
-              .fontColor('#666666')
+              .fontColor($r('app.color.text_secondary'))
               .margin({ top: 4 })
           }
           .width('100%')
@@ -613,18 +613,18 @@ export struct DiscoverPage {
         } else if (this.isLoading) {
           Text('正在加载文件信息...')
             .fontSize(14)
-            .fontColor('#999999')
+            .fontColor($r('app.color.text_tertiary'))
             .margin({ top: 16 })
         } else {
           Text('点击选择文件')
             .fontSize(14)
-            .fontColor('#999999')
+            .fontColor($r('app.color.text_tertiary'))
             .margin({ top: 16 })
         }
       }
       .width('100%')
       .padding(20)
-      .backgroundColor('#FFFFFF')
+      .backgroundColor($r('app.color.bg_primary'))
       .borderRadius(12)
       .margin({ left: 16, right: 16, bottom: 20 })
       .alignItems(HorizontalAlign.Center)
@@ -636,11 +636,11 @@ export struct DiscoverPage {
             .width('100%')
             .height(200)
             .fontSize(14)
-            .fontColor('#333333')
-            .backgroundColor('#FFFFFF')
+            .fontColor($r('app.color.text_primary'))
+            .backgroundColor($r('app.color.bg_primary'))
             .padding(10)
             .borderRadius(8)
-            .border({ width: 1, color: '#E0E0E0' })
+            .border({ width: 1, color: $r('app.color.border_primary') })
             .enabled(false)
           
           // 按钮组
@@ -648,8 +648,8 @@ export struct DiscoverPage {
             // 复制按钮
             Button('复制信息', { type: ButtonType.Normal })
               .fontSize(14)
-              .fontColor('#FFFFFF')
-              .backgroundColor('#1890FF')
+              .fontColor($r('app.color.bg_primary'))
+              .backgroundColor($r('app.color.primary_blue'))
               .borderRadius(6)
               .width(110)
               .height(36)
@@ -662,8 +662,8 @@ export struct DiscoverPage {
             // 清除按钮
             Button('清除选择', { type: ButtonType.Normal })
               .fontSize(14)
-              .fontColor('#FFFFFF')
-              .backgroundColor('#FF4D4F')
+              .fontColor($r('app.color.bg_primary'))
+              .backgroundColor($r('app.color.danger'))
               .borderRadius(6)
               .width(110)
               .height(36)
@@ -677,7 +677,7 @@ export struct DiscoverPage {
         }
         .width('100%')
         .padding(16)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor($r('app.color.bg_primary'))
         .borderRadius(12)
         .margin({ left: 16, right: 16, bottom: 20 })
       }
@@ -685,6 +685,6 @@ export struct DiscoverPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F8F8F8')
+    .backgroundColor($r('app.color.bg_secondary'))
   }
 }
