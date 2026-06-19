@@ -78,7 +78,7 @@ export struct ProfilePage {
           .fontColor($r('app.color.text_primary'))
           .margin({ bottom: 4 })
         
-        Text('版本 1.0.0')
+        Text($r('app.string.app_ver'))
           .fontSize(14)
           .fontColor($r('app.color.text_tertiary'))
           .margin({ bottom: 24 })

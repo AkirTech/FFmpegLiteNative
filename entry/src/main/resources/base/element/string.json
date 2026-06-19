@@ -11,6 +11,10 @@
     {
       "name": "EntryAbility_label",
       "value": "FFactory Lite"
+    },
+    {
+      "name": "app_ver",
+      "value": "版本 1.0.3"
     }
   ]
 }
